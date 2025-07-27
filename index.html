@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billiard Tables Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .table-card {
+            transition: all 0.3s ease;
+        }
+        
+        .table-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .status-available { background: linear-gradient(135deg, #10b981, #059669); }
+        .status-occupied { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .status-reserved { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .status-maintenance { background: linear-gradient(135deg, #6b7280, #4b5563); }
+        
+        .timer-display {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .printable-area, .printable-area * {
+                visibility: visible;
+            }
+
+            .printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">🎱</span>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">Billiard Management</h1>
+                        <p class="text-sm text-slate-500">Table Operations Dashboard</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p class="text-sm text-slate-500">Current Time</p>
+                        <p class="font-semibold text-slate-700" id="currentTime">--:--:--</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-slate-500" id="rateDisplay">Rate: 12,500 VND / 15 min</p>
+                        <p class="font-semibold text-slate-700" id="hourlyRate">50,000 VND / hour</p>
+                    </div>
+                    <button onclick="showAdminPage()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors mr-2">
+                        ⚙️ Admin
+                    </button>
+                    <button onclick="showHistoryPage()" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        📊 View History
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Overview -->
+    <div class="max-w-7xl mx-auto px-6 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">Today's Revenue</p>
+                        <p class="text-2xl font-bold text-emerald-600" id="todayRevenue">0 VND</p>
+                    </div>
+                    <button onclick="toggleTodayRevenue()" class="text-slate-400 hover:text-slate-600 text-lg transition-colors w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center hover:bg-emerald-200" id="todayToggle" title="Toggle visibility">
+                        🙈
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">This Month</p>
+                        <p class="text-2xl font-bold text-blue-600" id="monthRevenue">0 VND</p>
+                    </div>
+                    <button onclick="toggleMonthRevenue()" class="text-slate-400 hover:text-slate-600 text-lg transition-colors w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200" id="monthToggle" title="Toggle visibility">
+                        🙈
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-slate-500 mb-1">All Time Revenue</p>
+                        <p class="text-2xl font-bold text-purple-600" id="allTimeRevenue">0 VND</p>
+                    </div>
+                    <button onclick="toggleAllTimeRevenue()" class="text-slate-400 hover:text-slate-600 text-lg transition-colors w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center hover:bg-purple-200" id="allTimeToggle" title="Toggle visibility">
+                        🙈
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tables Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="tablesGrid">
+            <!-- Tables will be generated by JavaScript -->
+        </div>
+    </div>
+
+
+
+    <!-- Admin Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-slate-800">Admin Configuration</h3>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600 text-2xl">×</button>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Table Configuration -->
+                <div class="bg-slate-50 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-slate-800 mb-4">Table Configuration</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Number of Tables</label>
+                            <input type="number" id="tableCount" min="1" max="20" value="5" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Pricing Method</label>
+                            <select id="pricingMethod" onchange="togglePricingInputs()" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-3">
+                                <option value="hourly">Rate per Hour</option>
+                                <option value="interval">Rate per 20-minute interval</option>
+                            </select>
+                        </div>
+                        <div id="hourlyPricing">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Price per Hour (VND)</label>
+                            <input type="number" id="pricePerHour" min="3000" step="1000" value="30000" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div id="intervalPricing" style="display: none;">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Price per 20-minute interval (VND)</label>
+                            <input type="number" id="pricePerInterval" min="1000" step="1000" value="10000" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Bank Account Number</label>
+                            <input type="text" id="bankAccount" placeholder="Enter bank account number" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Bank BIN Code</label>
+                            <select id="bankBin" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option value="970423">TPBank (970423)</option>
+                                <option value="970415">Vietinbank (970415)</option>
+                                <option value="970436">Vietcombank (970436)</option>
+                                <option value="970422">MB Bank (970422)</option>
+                                <option value="970407">Techcombank (970407)</option>
+                                <option value="970448">OCB (970448)</option>
+                                <option value="970405">Agribank (970405)</option>
+                                <option value="970432">VPBank (970432)</option>
+                                <option value="970403">Sacombank (970403)</option>
+                                <option value="970437">HDBank (970437)</option>
+                            </select>
+                        </div>
+                        <button onclick="updateConfiguration()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                            Update Configuration
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Products Configuration -->
+                <div class="bg-slate-50 rounded-lg p-6">
+                    <h4 class="text-lg font-semibold text-slate-800 mb-4">Products & Services</h4>
+                    <div class="space-y-4">
+                        <div class="flex space-x-2">
+                            <input type="text" id="productName" placeholder="Product name" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <input type="number" id="productPrice" placeholder="Price (VND)" class="w-32 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <button onclick="addProduct()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                Add
+                            </button>
+                        </div>
+                        
+                        <div class="max-h-64 overflow-y-auto">
+                            <div id="productsList" class="space-y-2">
+                                <!-- Products will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end mt-6">
+                <button onclick="closeAdminModal()" class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Modal -->
+    <div id="productsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Manage Products - <span id="productsTableId">Table 1</span></h3>
+                <button onclick="closeProductsModal()" class="text-slate-400 hover:text-slate-600 text-2xl">×</button>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Current Orders Section -->
+                <div class="bg-slate-50 rounded-lg p-4">
+                    <h4 class="font-semibold text-slate-800 mb-3">Current Orders:</h4>
+                    <div id="currentOrdersList" class="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                        <!-- Current orders will appear here -->
+                    </div>
+                    <div class="flex justify-between items-center text-lg font-bold pt-2 border-t">
+                        <span>Current Total:</span>
+                        <span class="text-emerald-600" id="currentOrdersTotal">0 VND</span>
+                    </div>
+                </div>
+                
+                <!-- Add Products Section -->
+                <div class="bg-slate-50 rounded-lg p-4">
+                    <h4 class="font-semibold text-slate-800 mb-3">Add Items:</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4" id="productsGrid">
+                        <!-- Products will be populated here -->
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <h5 class="font-medium text-slate-700 mb-2">Adding to Order:</h5>
+                        <div id="selectedProducts" class="space-y-2 mb-3 max-h-32 overflow-y-auto">
+                            <!-- Selected products will appear here -->
+                        </div>
+                        <div class="flex justify-between items-center text-lg font-bold">
+                            <span>Additional Items:</span>
+                            <span class="text-orange-600" id="productsTotal">0 VND</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3 pt-6">
+                <button onclick="closeProductsModal()" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+                    Close
+                </button>
+                <button onclick="confirmProducts()" class="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                    Update Order
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-slate-800">Session History</h3>
+                <button onclick="closeHistoryModal()" class="text-slate-400 hover:text-slate-600 text-2xl">×</button>
+            </div>
+            
+            <div class="mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-emerald-50 rounded-lg p-4">
+                        <p class="text-sm text-emerald-600 font-medium">Total Sessions</p>
+                        <p class="text-2xl font-bold text-emerald-700" id="historyTotalSessions">0</p>
+                    </div>
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <p class="text-sm text-blue-600 font-medium">Total Playing Time</p>
+                        <p class="text-2xl font-bold text-blue-700" id="historyTotalTime">0h 0m</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4">
+                        <p class="text-sm text-purple-600 font-medium">Total Revenue</p>
+                        <p class="text-2xl font-bold text-purple-700" id="historyTotalRevenue">0 VND</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50">
+                            <th class="text-left p-3 font-semibold text-slate-700 border-b">Customer</th>
+                            <th class="text-left p-3 font-semibold text-slate-700 border-b">Table</th>
+                            <th class="text-left p-3 font-semibold text-slate-700 border-b">Playing Time</th>
+                            <th class="text-left p-3 font-semibold text-slate-700 border-b">Table Amount</th>
+                            <th class="text-left p-3 font-semibold text-slate-700 border-b">Products</th>
+                            <th class="text-left p-3 font-semibold text-slate-700 border-b">Total Amount</th>
+                            <th class="text-left p-3 font-semibold text-slate-700 border-b">End Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <!-- History rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto printable-area">
+            <h3 class="text-xl font-bold text-slate-800 mb-4">Session Complete</h3>
+            <div class="space-y-4">
+                <div class="bg-slate-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Table:</span>
+                        <span class="font-medium" id="paymentTableId">-</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Start Time:</span>
+                        <span class="font-medium" id="paymentStartTime">-</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">End Time:</span>
+                        <span class="font-medium" id="paymentEndTime">-</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Playing Time:</span>
+                        <span class="font-medium" id="paymentDuration">-</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Table Amount:</span>
+                        <span class="font-medium text-blue-600" id="paymentTableAmount">-</span>
+                    </div>
+                </div>
+                
+                <!-- Ordered Products Section -->
+                <div class="bg-slate-50 rounded-lg p-4" id="paymentProductsSection">
+                    <h4 class="font-semibold text-slate-800 mb-3">Ordered Products:</h4>
+                    <div id="paymentProductsList" class="space-y-2 mb-3">
+                        <!-- Products will be populated here -->
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t">
+                        <span class="text-sm text-slate-600">Products Total:</span>
+                        <span class="font-medium text-orange-600" id="paymentProductsAmount">-</span>
+                    </div>
+                </div>
+                
+                <div class="bg-emerald-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold text-slate-800">Total Amount:</span>
+                        <span class="text-xl font-bold text-emerald-600" id="paymentAmount">-</span>
+                    </div>
+                </div>
+                
+                <!-- QR Code Section -->
+                <div class="bg-blue-50 rounded-lg p-4" id="qrCodeSection">
+                    <h4 class="font-semibold text-slate-800 mb-3 text-center">Scan QR Code to Pay</h4>
+                    <div class="flex justify-center mb-3">
+                        <canvas id="paymentQRCode" class="border border-slate-200 rounded-lg"></canvas>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-slate-600 mb-1">Transaction ID:</p>
+                        <p class="text-xs font-mono text-slate-500" id="transactionId">-</p>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button onclick="closePaymentModal()" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="confirmPayment()" class="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">
+                        Confirm Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        // Generate UUID v4
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Table data
+        let tables = [
+            { id: 1, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
+            { id: 2, status: 'occupied', customer: 'John Smith', playingTime: 0, startTime: Date.now() - 3420000, products: [], transactionId: generateUUID() },
+            { id: 3, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
+            { id: 4, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
+            { id: 5, status: 'occupied', customer: 'Sarah Wilson', playingTime: 0, startTime: Date.now() - 2700000, products: [], transactionId: generateUUID() }
+        ];
+
+        // Available products and services
+        let availableProducts = [
+            { id: 1, name: 'Coca Cola', price: 15000 },
+            { id: 2, name: 'Pepsi', price: 15000 },
+            { id: 3, name: 'Water Bottle', price: 10000 },
+            { id: 4, name: 'Coffee', price: 25000 },
+            { id: 5, name: 'Fried Rice', price: 45000 },
+            { id: 6, name: 'Chicken Wings', price: 35000 },
+            { id: 7, name: 'French Fries', price: 30000 },
+            { id: 8, name: 'Sandwich', price: 40000 },
+            { id: 9, name: 'Beer', price: 20000 },
+            { id: 10, name: 'Juice', price: 18000 }
+        ];
+
+        // Historical completed sessions for revenue calculation
+        let completedSessions = [
+            { customer: 'Alex Johnson', playingTime: 2700, tableAmount: 50000, productsAmount: 30000, amount: 80000, tableId: 1, endTime: Date.now() - 7200000, products: [{name: 'Coca Cola', price: 15000, quantity: 2}] },
+            { customer: 'Maria Garcia', playingTime: 3600, tableAmount: 50000, productsAmount: 45000, amount: 95000, tableId: 3, endTime: Date.now() - 5400000, products: [{name: 'Fried Rice', price: 45000, quantity: 1}] },
+            { customer: 'Tom Wilson', playingTime: 1800, tableAmount: 25000, productsAmount: 20000, amount: 45000, tableId: 2, endTime: Date.now() - 3600000, products: [{name: 'Beer', price: 20000, quantity: 1}] },
+            { customer: 'Lisa Chen', playingTime: 4500, tableAmount: 62500, productsAmount: 65000, amount: 127500, tableId: 4, endTime: Date.now() - 1800000, products: [{name: 'Coffee', price: 25000, quantity: 1}, {name: 'Sandwich', price: 40000, quantity: 1}] },
+            { customer: 'Mike Brown', playingTime: 900, tableAmount: 12500, productsAmount: 0, amount: 12500, tableId: 5, endTime: Date.now() - 900000, products: [] },
+            { customer: 'Anna Davis', playingTime: 5400, tableAmount: 75000, productsAmount: 53000, amount: 128000, tableId: 6, endTime: Date.now() - 600000, products: [{name: 'Chicken Wings', price: 35000, quantity: 1}, {name: 'Juice', price: 18000, quantity: 1}] },
+        ];
+
+        let PRICE_PER_20_MIN = 10000; // VND (configurable)
+        let BANK_ACCOUNT = '0354682969'; // Bank account number (configurable)
+        let BANK_BIN = '970423'; // Bank BIN code (configurable)
+        let BANK_ID = 'TPB'
+
+        let selectedTableId = null;
+        
+        // Track individual revenue visibility states
+        let todayRevenueVisible = false;
+        let monthRevenueVisible = false;
+        let allTimeRevenueVisible = false;
+
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+        }
+
+        // Format playing time
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Get current playing time for a table
+        function getCurrentPlayingTime(table) {
+            if (table.status === 'occupied' && table.startTime) {
+                return Math.floor((Date.now() - table.startTime) / 1000);
+            }
+            return table.playingTime;
+        }
+
+        // Calculate price based on playing time (rounded up to 20-minute intervals)
+        function calculatePrice(playingTimeSeconds) {
+            const minutes = playingTimeSeconds / 60;
+            const rounded20MinIntervals = Math.ceil(minutes / 20); // Round up to next 20-minute interval
+            return rounded20MinIntervals * PRICE_PER_20_MIN;
+        }
+
+        // Format VND currency
+        function formatVND(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
+        // Get status display info
+        function getStatusInfo(status) {
+            const statusMap = {
+                'available': { text: 'Available', class: 'status-available', icon: '✓' },
+                'occupied': { text: 'Busy', class: 'status-occupied', icon: '🎯' }
+            };
+            return statusMap[status];
+        }
+
+        // Render tables
+        function renderTables() {
+            const grid = document.getElementById('tablesGrid');
+            grid.innerHTML = '';
+
+            tables.forEach(table => {
+                const statusInfo = getStatusInfo(table.status);
+                const card = document.createElement('div');
+                card.className = 'table-card bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden';
+                
+                card.innerHTML = `
+                    <div class="${statusInfo.class} text-white p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-lg">${statusInfo.icon}</span>
+                                <span class="font-semibold">${statusInfo.text}</span>
+                            </div>
+                            ${table.status === 'occupied' ? '<div class="pulse-dot w-2 h-2 bg-white rounded-full"></div>' : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-bold text-slate-800">Table ${table.id}</h3>
+                        </div>
+                        
+
+                        
+                        ${table.status === 'occupied' ? `
+                            <div class="mb-4">
+                                <p class="text-sm text-slate-500">Playing Time</p>
+                                <p class="timer-display text-lg font-bold text-slate-800">${formatTime(getCurrentPlayingTime(table))}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="flex space-x-2">
+                            ${table.status === 'available' ? 
+                                `<button onclick="startSession(${table.id})" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors">
+                                    Start Session
+                                </button>` : 
+                                `<button onclick="endSession(${table.id})" class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors">
+                                    End Session
+                                </button>
+                                <button onclick="showProductsModal(${table.id})" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors">
+                                    🍽️ Products
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+        function showVietQR(amount, DEST_BANK_ID, DEST_ACCOUNT) {
+            //const BANK_ID = "TPB"; // Default: TPBank
+            if (DEST_ACCOUNT == ""){
+                ACCOUNT_NO = BANK_ACCOUNT;
+            }
+            else{
+                ACCOUNT_NO = DEST_ACCOUNT;
+            }
+            if (DEST_BANK_ID != ""){
+                BANK_ID = DEST_BANK_ID;
+            }
+            const TEMPLATE = "compact2";
+            const DESCRIPTION = document.getElementById('transactionId').innerHTML;
+
+            const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-${TEMPLATE}.png?amount=${amount}&addInfo=${DESCRIPTION}`;
+
+            const canvas = document.getElementById('paymentQRCode');
+
+            // Check if the image already exists, then update or insert
+            let img = canvas.nextElementSibling;
+            if (!img || img.tagName !== 'IMG') {
+                img = document.createElement('img');
+                img.className = "border border-slate-200 rounded-lg mt-2";
+                canvas.parentNode.appendChild(img);
+            }
+
+            img.src = qrUrl;
+            img.alt = "QR Code";
+            canvas.remove();
+        }
+        // Calculate revenue for different time periods
+        function calculateRevenue(filter) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            
+            // Filter completed sessions based on selected period
+            let filteredSessions = completedSessions;
+            if (filter === 'today') {
+                filteredSessions = completedSessions.filter(session => new Date(session.endTime) >= today);
+            } else if (filter === 'month') {
+                filteredSessions = completedSessions.filter(session => new Date(session.endTime) >= thisMonth);
+            }
+            
+            // Revenue from filtered completed sessions
+            const completedRevenue = filteredSessions.reduce((total, session) => total + session.amount, 0);
+            
+            // Revenue from ongoing sessions (always included regardless of filter)
+            const ongoingRevenue = tables
+                .filter(t => t.status === 'occupied')
+                .reduce((total, table) => {
+                    const currentPlayingTime = getCurrentPlayingTime(table);
+                    const tableAmount = calculatePrice(currentPlayingTime);
+                    const productsAmount = table.products.reduce((pTotal, product) => pTotal + (product.price * product.quantity), 0);
+                    return total + tableAmount + productsAmount;
+                }, 0);
+            
+            return completedRevenue + ongoingRevenue;
+        }
+        
+        // Toggle individual revenue visibility functions
+        function toggleTodayRevenue() {
+            todayRevenueVisible = !todayRevenueVisible;
+            const toggleButton = document.getElementById('todayToggle');
+            
+            if (todayRevenueVisible) {
+                toggleButton.textContent = '👁️';
+                toggleButton.title = 'Hide today\'s revenue';
+            } else {
+                toggleButton.textContent = '🙈';
+                toggleButton.title = 'Show today\'s revenue';
+            }
+            
+            updateRevenueDisplays();
+        }
+        
+        function toggleMonthRevenue() {
+            monthRevenueVisible = !monthRevenueVisible;
+            const toggleButton = document.getElementById('monthToggle');
+            
+            if (monthRevenueVisible) {
+                toggleButton.textContent = '👁️';
+                toggleButton.title = 'Hide month\'s revenue';
+            } else {
+                toggleButton.textContent = '🙈';
+                toggleButton.title = 'Show month\'s revenue';
+            }
+            
+            updateRevenueDisplays();
+        }
+        
+        function toggleAllTimeRevenue() {
+            allTimeRevenueVisible = !allTimeRevenueVisible;
+            const toggleButton = document.getElementById('allTimeToggle');
+            
+            if (allTimeRevenueVisible) {
+                toggleButton.textContent = '👁️';
+                toggleButton.title = 'Hide all time revenue';
+            } else {
+                toggleButton.textContent = '🙈';
+                toggleButton.title = 'Show all time revenue';
+            }
+            
+            updateRevenueDisplays();
+        }
+        
+        // Update all revenue displays
+        function updateRevenueDisplays() {
+            const todayRevenue = calculateRevenue('today');
+            const monthRevenue = calculateRevenue('month');
+            const allTimeRevenue = calculateRevenue('all');
+            
+            // Update each revenue display based on its individual visibility state
+            document.getElementById('todayRevenue').textContent = todayRevenueVisible ? formatVND(todayRevenue) : '****';
+            document.getElementById('monthRevenue').textContent = monthRevenueVisible ? formatVND(monthRevenue) : '****';
+            document.getElementById('allTimeRevenue').textContent = allTimeRevenueVisible ? formatVND(allTimeRevenue) : '****';
+        }
+
+        // Update stats
+        function updateStats() {
+            updateRevenueDisplays();
+        }
+
+
+
+        // Admin functions
+        function showAdminPage() {
+            // Set current pricing values
+            document.getElementById('pricePerInterval').value = PRICE_PER_20_MIN;
+            document.getElementById('pricePerHour').value = PRICE_PER_20_MIN * 3;
+            
+            // Set current bank settings
+            document.getElementById('bankAccount').value = BANK_ACCOUNT;
+            document.getElementById('bankBin').value = BANK_BIN;
+            
+            populateProductsList();
+            document.getElementById('adminModal').classList.remove('hidden');
+            document.getElementById('adminModal').classList.add('flex');
+        }
+
+        function togglePricingInputs() {
+            const method = document.getElementById('pricingMethod').value;
+            const hourlyDiv = document.getElementById('hourlyPricing');
+            const intervalDiv = document.getElementById('intervalPricing');
+            
+            if (method === 'hourly') {
+                hourlyDiv.style.display = 'block';
+                intervalDiv.style.display = 'none';
+            } else {
+                hourlyDiv.style.display = 'none';
+                intervalDiv.style.display = 'block';
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+            document.getElementById('adminModal').classList.remove('flex');
+        }
+
+        function updateConfiguration() {
+            const newCount = parseInt(document.getElementById('tableCount').value);
+            const pricingMethod = document.getElementById('pricingMethod').value;
+            const bankAccount = document.getElementById('bankAccount').value.trim();
+            const bankBin = document.getElementById('bankBin').value;
+            
+            if (newCount < 1 || newCount > 20) {
+                alert('Number of tables must be between 1 and 20');
+                return;
+            }
+            
+            let newPrice;
+            if (pricingMethod === 'hourly') {
+                const hourlyPrice = parseInt(document.getElementById('pricePerHour').value);
+                if (hourlyPrice < 3000) {
+                    alert('Hourly price must be at least 3,000 VND');
+                    return;
+                }
+                // Convert hourly rate to 20-minute interval rate
+                newPrice = Math.round(hourlyPrice / 3);
+            } else {
+                newPrice = parseInt(document.getElementById('pricePerInterval').value);
+                if (newPrice < 1000) {
+                    alert('Price per interval must be at least 1,000 VND');
+                    return;
+                }
+            }
+            
+            // Update pricing and bank settings
+            PRICE_PER_20_MIN = newPrice;
+            BANK_ACCOUNT = bankAccount;
+            BANK_BIN = bankBin;
+            
+            // Adjust tables array
+            if (newCount > tables.length) {
+                // Add new tables
+                for (let i = tables.length + 1; i <= newCount; i++) {
+                    tables.push({ id: i, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null });
+                }
+            } else if (newCount < tables.length) {
+                // Remove tables (only if they're available)
+                const tablesToRemove = tables.slice(newCount);
+                const occupiedTables = tablesToRemove.filter(t => t.status === 'occupied');
+                if (occupiedTables.length > 0) {
+                    alert('Cannot remove occupied tables. Please end sessions first.');
+                    return;
+                }
+                tables = tables.slice(0, newCount);
+            }
+            
+            renderTables();
+            updateStats();
+            updateHeaderPricing();
+            alert('Configuration updated successfully!');
+        }
+
+        function addProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const price = parseInt(document.getElementById('productPrice').value);
+            
+            if (!name || !price || price <= 0) {
+                alert('Please enter valid product name and price');
+                return;
+            }
+            
+            const newId = Math.max(...availableProducts.map(p => p.id), 0) + 1;
+            availableProducts.push({ id: newId, name, price });
+            
+            document.getElementById('productName').value = '';
+            document.getElementById('productPrice').value = '';
+            
+            populateProductsList();
+        }
+
+        function removeProduct(productId) {
+            availableProducts = availableProducts.filter(p => p.id !== productId);
+            populateProductsList();
+        }
+
+        function populateProductsList() {
+            const container = document.getElementById('productsList');
+            container.innerHTML = '';
+            
+            availableProducts.forEach(product => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-white p-3 rounded-lg border';
+                div.innerHTML = `
+                    <div>
+                        <span class="font-medium">${product.name}</span>
+                        <span class="text-slate-500 ml-2">${formatVND(product.price)}</span>
+                    </div>
+                    <button onclick="removeProduct(${product.id})" class="text-red-600 hover:text-red-800 font-bold">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Products modal functions
+        let selectedTableForProducts = null;
+        let selectedProductsForTable = [];
+
+        function showProductsModal(tableId) {
+            selectedTableForProducts = tableId;
+            selectedProductsForTable = [];
+            
+            const table = tables.find(t => t.id === tableId);
+            document.getElementById('productsTableId').textContent = `Table ${tableId}`;
+            
+            populateCurrentOrders(table);
+            populateProductsGrid();
+            updateSelectedProducts();
+            
+            document.getElementById('productsModal').classList.remove('hidden');
+            document.getElementById('productsModal').classList.add('flex');
+        }
+
+        function closeProductsModal() {
+            document.getElementById('productsModal').classList.add('hidden');
+            document.getElementById('productsModal').classList.remove('flex');
+            selectedTableForProducts = null;
+            selectedProductsForTable = [];
+        }
+
+        function populateProductsGrid() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+            
+            availableProducts.forEach(product => {
+                const div = document.createElement('div');
+                div.className = 'bg-slate-50 p-4 rounded-lg border hover:bg-slate-100 cursor-pointer transition-colors';
+                div.onclick = () => addProductToSelection(product);
+                div.innerHTML = `
+                    <h5 class="font-medium text-slate-800">${product.name}</h5>
+                    <p class="text-emerald-600 font-semibold">${formatVND(product.price)}</p>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function addProductToSelection(product) {
+            const existing = selectedProductsForTable.find(p => p.id === product.id);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                selectedProductsForTable.push({ ...product, quantity: 1 });
+            }
+            updateSelectedProducts();
+        }
+
+        function removeProductFromSelection(productId) {
+            selectedProductsForTable = selectedProductsForTable.filter(p => p.id !== productId);
+            updateSelectedProducts();
+        }
+
+        function updateProductQuantity(productId, change) {
+            const product = selectedProductsForTable.find(p => p.id === productId);
+            if (product) {
+                product.quantity += change;
+                if (product.quantity <= 0) {
+                    removeProductFromSelection(productId);
+                } else {
+                    updateSelectedProducts();
+                }
+            }
+        }
+
+        function updateSelectedProducts() {
+            const container = document.getElementById('selectedProducts');
+            const totalElement = document.getElementById('productsTotal');
+            
+            container.innerHTML = '';
+            let total = 0;
+            
+            selectedProductsForTable.forEach(product => {
+                const subtotal = product.price * product.quantity;
+                total += subtotal;
+                
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between bg-slate-50 p-2 rounded';
+                div.innerHTML = `
+                    <span class="font-medium">${product.name}</span>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="updateProductQuantity(${product.id}, -1)" class="w-6 h-6 bg-red-500 text-white rounded text-sm">-</button>
+                        <span class="w-8 text-center">${product.quantity}</span>
+                        <button onclick="updateProductQuantity(${product.id}, 1)" class="w-6 h-6 bg-green-500 text-white rounded text-sm">+</button>
+                        <span class="text-emerald-600 font-semibold ml-2">${formatVND(subtotal)}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            totalElement.textContent = formatVND(total);
+        }
+
+        function populateCurrentOrders(table) {
+            const container = document.getElementById('currentOrdersList');
+            const totalElement = document.getElementById('currentOrdersTotal');
+            
+            container.innerHTML = '';
+            let total = 0;
+            
+            if (table.products.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-center py-4">No items ordered yet</p>';
+            } else {
+                table.products.forEach(product => {
+                    const subtotal = product.price * product.quantity;
+                    total += subtotal;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between bg-white p-3 rounded border';
+                    div.innerHTML = `
+                        <div>
+                            <span class="font-medium text-slate-800">${product.name}</span>
+                            <div class="text-sm text-slate-600">${formatVND(product.price)} × ${product.quantity}</div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="updateCurrentOrderQuantity(${product.id}, -1)" class="w-7 h-7 bg-red-500 text-white rounded text-sm hover:bg-red-600">-</button>
+                            <span class="w-8 text-center font-medium">${product.quantity}</span>
+                            <button onclick="updateCurrentOrderQuantity(${product.id}, 1)" class="w-7 h-7 bg-green-500 text-white rounded text-sm hover:bg-green-600">+</button>
+                            <span class="text-emerald-600 font-semibold ml-3 min-w-[80px] text-right">${formatVND(subtotal)}</span>
+                            <button onclick="removeCurrentOrderItem(${product.id})" class="w-7 h-7 bg-red-600 text-white rounded text-sm hover:bg-red-700 ml-2">×</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            
+            totalElement.textContent = formatVND(total);
+        }
+
+        function updateCurrentOrderQuantity(productId, change) {
+            const table = tables.find(t => t.id === selectedTableForProducts);
+            const product = table.products.find(p => p.id === productId);
+            
+            if (product) {
+                product.quantity += change;
+                if (product.quantity <= 0) {
+                    removeCurrentOrderItem(productId);
+                } else {
+                    populateCurrentOrders(table);
+                    renderTables(); // Update the main view
+                }
+            }
+        }
+
+        function removeCurrentOrderItem(productId) {
+            const table = tables.find(t => t.id === selectedTableForProducts);
+            table.products = table.products.filter(p => p.id !== productId);
+            populateCurrentOrders(table);
+            renderTables(); // Update the main view
+        }
+
+        function confirmProducts() {
+            const table = tables.find(t => t.id === selectedTableForProducts);
+            if (table && selectedProductsForTable.length > 0) {
+                // Add new products to table
+                selectedProductsForTable.forEach(selectedProduct => {
+                    const existing = table.products.find(p => p.id === selectedProduct.id);
+                    if (existing) {
+                        existing.quantity += selectedProduct.quantity;
+                    } else {
+                        table.products.push({ ...selectedProduct });
+                    }
+                });
+                
+                // Refresh the current orders display
+                populateCurrentOrders(table);
+                selectedProductsForTable = [];
+                updateSelectedProducts();
+                renderTables();
+            }
+            // Keep the modal open - don't close automatically
+        }
+
+
+
+        // Table action functions
+        function startSession(tableId) {
+            const table = tables.find(t => t.id === tableId);
+            if (table) {
+                table.status = 'occupied';
+                table.customer = 'Anonymous Customer';
+                table.playingTime = 0;
+                table.startTime = Date.now();
+                table.products = [];
+                table.transactionId = generateUUID(); // Generate transaction ID when session starts
+                
+                renderTables();
+                updateStats();
+            }
+        }
+
+
+
+        let selectedPaymentTable = null;
+
+        function endSession(tableId) {
+            const table = tables.find(t => t.id === tableId);
+            if (table) {
+                // Calculate final playing time
+                const finalPlayingTime = getCurrentPlayingTime(table);
+                table.playingTime = finalPlayingTime;
+                
+                // Show payment modal
+                selectedPaymentTable = table;
+                showPaymentModal(table);
+            }
+        }
+
+        function showPaymentModal(table) {
+            const playingTime = table.playingTime;
+            const tableAmount = calculatePrice(playingTime);
+            const productsAmount = table.products.reduce((total, product) => total + (product.price * product.quantity), 0);
+            const totalAmount = tableAmount + productsAmount;
+            
+            // Format start and end times
+            const startTime = new Date(table.startTime).toLocaleTimeString();
+            const endTime = new Date().toLocaleTimeString();
+            
+            document.getElementById('paymentTableId').textContent = `Table ${table.id}`;
+            document.getElementById('paymentStartTime').textContent = startTime;
+            document.getElementById('paymentEndTime').textContent = endTime;
+            document.getElementById('paymentDuration').textContent = formatTime(playingTime);
+            document.getElementById('paymentTableAmount').textContent = formatVND(tableAmount);
+            document.getElementById('paymentProductsAmount').textContent = formatVND(productsAmount);
+            document.getElementById('paymentAmount').textContent = formatVND(totalAmount);
+            document.getElementById('transactionId').textContent = table.transactionId || 'N/A';
+            
+            
+            // Populate products list
+            const productsList = document.getElementById('paymentProductsList');
+            const productsSection = document.getElementById('paymentProductsSection');
+            
+            if (table.products.length > 0) {
+                productsSection.style.display = 'block';
+                productsList.innerHTML = '';
+                
+                table.products.forEach(product => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-3 rounded border mb-2';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="font-medium text-slate-800">${product.name}</span>
+                            <span class="font-semibold text-emerald-600">${formatVND(product.price * product.quantity)}</span>
+                        </div>
+                        <div class="text-sm text-slate-600">
+                            <span>${formatVND(product.price)} × ${product.quantity} items</span>
+                        </div>
+                    `;
+                    productsList.appendChild(div);
+                });
+            } else {
+                productsSection.style.display = 'none';
+            }
+            
+            document.getElementById('paymentModal').classList.remove('hidden');
+            document.getElementById('paymentModal').classList.add('flex');
+            showVietQR(totalAmount, "TPB", BANK_ACCOUNT);
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+            document.getElementById('paymentModal').classList.remove('flex');
+            selectedPaymentTable = null;
+        }
+
+        function confirmPayment() {
+            if (selectedPaymentTable) {
+                // Calculate amounts
+                const tableAmount = calculatePrice(selectedPaymentTable.playingTime);
+                const productsAmount = selectedPaymentTable.products.reduce((total, product) => total + (product.price * product.quantity), 0);
+                const finalAmount = tableAmount + productsAmount;
+                
+                // Add to completed sessions for revenue tracking
+                completedSessions.push({
+                    customer: selectedPaymentTable.customer,
+                    playingTime: selectedPaymentTable.playingTime,
+                    tableAmount: tableAmount,
+                    productsAmount: productsAmount,
+                    amount: finalAmount,
+                    tableId: selectedPaymentTable.id,
+                    endTime: Date.now(),
+                    products: [...selectedPaymentTable.products],
+                    transactionId: selectedPaymentTable.transactionId
+                });
+                window.print();
+                selectedPaymentTable.status = 'available';
+                selectedPaymentTable.customer = '';
+                selectedPaymentTable.playingTime = 0;
+                selectedPaymentTable.startTime = null;
+                selectedPaymentTable.products = [];
+                selectedPaymentTable.transactionId = null;
+                
+                renderTables();
+                updateStats();
+                closePaymentModal();
+            }
+        }
+
+
+
+
+
+        // Update playing time display
+        function updateTimers() {
+            // Just re-render to update the playing time display
+            renderTables();
+        }
+
+        // History page functions
+        function showHistoryPage() {
+            populateHistoryData();
+            document.getElementById('historyModal').classList.remove('hidden');
+            document.getElementById('historyModal').classList.add('flex');
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').classList.add('hidden');
+            document.getElementById('historyModal').classList.remove('flex');
+        }
+
+        function populateHistoryData() {
+            // Calculate totals
+            const totalSessions = completedSessions.length;
+            const totalTime = completedSessions.reduce((total, session) => total + session.playingTime, 0);
+            const totalRevenue = completedSessions.reduce((total, session) => total + session.amount, 0);
+            
+            // Update summary stats
+            document.getElementById('historyTotalSessions').textContent = totalSessions;
+            document.getElementById('historyTotalTime').textContent = formatTimeHours(totalTime);
+            document.getElementById('historyTotalRevenue').textContent = formatVND(totalRevenue);
+            
+            // Populate table
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = '';
+            
+            // Sort sessions by end time (most recent first)
+            const sortedSessions = [...completedSessions].sort((a, b) => b.endTime - a.endTime);
+            
+            sortedSessions.forEach(session => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-slate-50';
+                
+                const productsText = session.products.length > 0 
+                    ? session.products.map(p => `${p.name} (${p.quantity})`).join(', ')
+                    : 'None';
+                
+                row.innerHTML = `
+                    <td class="p-3 text-slate-700">${session.customer}</td>
+                    <td class="p-3 text-slate-700">Table ${session.tableId}</td>
+                    <td class="p-3 text-slate-700">${formatTime(session.playingTime)}</td>
+                    <td class="p-3 text-blue-600 font-semibold">${formatVND(session.tableAmount)}</td>
+                    <td class="p-3 text-slate-600 text-sm">${productsText}<br><span class="text-orange-600 font-semibold">${formatVND(session.productsAmount)}</span></td>
+                    <td class="p-3 text-emerald-600 font-semibold">${formatVND(session.amount)}</td>
+                    <td class="p-3 text-slate-500">${new Date(session.endTime).toLocaleString()}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function formatTimeHours(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            return `${hours}h ${minutes}m`;
+        }
+
+        function updateHeaderPricing() {
+            const hourlyRate = PRICE_PER_20_MIN * 3;
+            document.getElementById('rateDisplay').textContent = `Rate: ${formatVND(PRICE_PER_20_MIN)} / 20 min`;
+            document.getElementById('hourlyRate').textContent = `${formatVND(hourlyRate)} / hour`;
+        }
+
+        // Initialize
+        function init() {
+            updateHeaderPricing();
+            renderTables();
+            updateStats();
+            updateCurrentTime();
+            
+            // Update timers every second
+            setInterval(updateTimers, 1000);
+            
+            // Update current time every second
+            setInterval(updateCurrentTime, 1000);
+        }
+
+        // Start the application
+        init();
+        // function showVietQR(amount) {
+        //     const bankId = 'TPB'; // TODO: inject from Blade or config
+        //     const accountNo = '0354682969'; // TODO: inject from Blade or config
+        //     const template = 'print';
+        //     const description = "CK";
+        //     const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?amount=${amount}&addInfo=${description}`;
+        //     window.open(qrUrl, '_blank').focus();
+        // }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9656f926854a1c66',t:'MTc1MzU2NTE2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
