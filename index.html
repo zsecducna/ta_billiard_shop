@@ -458,7 +458,7 @@
         let PRICE_PER_20_MIN = 10000; // VND (configurable)
         let BANK_ACCOUNT = '0354682969'; // Bank account number (configurable)
         let BANK_BIN = '970423'; // Bank BIN code (configurable)
-        let BANK_ID = 'TPB'
+        let BANK_ID = BANK_BIN
 
         let selectedTableId = null;
         
@@ -572,23 +572,16 @@
                 grid.appendChild(card);
             });
         }
-        function showVietQR(amount, DEST_BANK_ID, DEST_ACCOUNT) {
-            //const BANK_ID = "TPB"; // Default: TPBank
-            if (DEST_ACCOUNT == ""){
-                ACCOUNT_NO = BANK_ACCOUNT;
-            }
-            else{
-                ACCOUNT_NO = DEST_ACCOUNT;
-            }
-            if (DEST_BANK_ID != ""){
-                BANK_ID = DEST_BANK_ID;
-            }
+        function showVietQR(amount) {
+            ACCOUNT_NO = BANK_ACCOUNT
+            BANK_ID = BANK_BIN
             const TEMPLATE = "compact2";
             const DESCRIPTION = document.getElementById('transactionId').innerHTML;
 
             const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-${TEMPLATE}.png?amount=${amount}&addInfo=${DESCRIPTION}`;
 
             const canvas = document.getElementById('paymentQRCode');
+            canvas.style.display = "none";
 
             // Check if the image already exists, then update or insert
             let img = canvas.nextElementSibling;
@@ -600,7 +593,7 @@
 
             img.src = qrUrl;
             img.alt = "QR Code";
-            canvas.remove();
+            //canvas.remove();
         }
         // Calculate revenue for different time periods
         function calculateRevenue(filter) {
@@ -1090,7 +1083,7 @@
             
             document.getElementById('paymentModal').classList.remove('hidden');
             document.getElementById('paymentModal').classList.add('flex');
-            showVietQR(totalAmount, "TPB", BANK_ACCOUNT);
+            showVietQR(totalAmount);
         }
         function saveStateToLocalStorage() {
             localStorage.setItem('tables', JSON.stringify(tables));
