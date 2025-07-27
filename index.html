@@ -103,7 +103,7 @@
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200" style="display: none;">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-slate-500 mb-1">This Month</p>
@@ -115,7 +115,7 @@
                 </div>
             </div>
             
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-200" style="display: none;">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-slate-500 mb-1">All Time Revenue</p>
@@ -404,37 +404,51 @@
             });
         }
 
-        // Table data
+        // Table data - dummy data
+        // let tables = [
+        //     { id: 1, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
+        //     { id: 2, status: 'occupied', customer: '', playingTime: 0, startTime: Date.now() - 3420000, products: [], transactionId: generateUUID() },
+        //     { id: 3, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
+        //     { id: 4, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
+        //     { id: 5, status: 'occupied', customer: '', playingTime: 0, startTime: Date.now() - 2700000, products: [], transactionId: generateUUID() }
+        // ];
         let tables = [
             { id: 1, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
-            { id: 2, status: 'occupied', customer: 'John Smith', playingTime: 0, startTime: Date.now() - 3420000, products: [], transactionId: generateUUID() },
+            { id: 2, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
             { id: 3, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
             { id: 4, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
-            { id: 5, status: 'occupied', customer: 'Sarah Wilson', playingTime: 0, startTime: Date.now() - 2700000, products: [], transactionId: generateUUID() }
+            { id: 5, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
+            
         ];
 
-        // Available products and services
+        // Available products and services - dummy data
+        // let availableProducts = [
+        //     { id: 1, name: 'Coca Cola', price: 15000 },
+        //     { id: 2, name: 'Pepsi', price: 15000 },
+        //     { id: 3, name: 'Water Bottle', price: 10000 },
+        //     { id: 4, name: 'Coffee', price: 25000 },
+        //     { id: 5, name: 'Fried Rice', price: 45000 },
+        //     { id: 6, name: 'Chicken Wings', price: 35000 },
+        //     { id: 7, name: 'French Fries', price: 30000 },
+        //     { id: 8, name: 'Sandwich', price: 40000 },
+        //     { id: 9, name: 'Beer', price: 20000 },
+        //     { id: 10, name: 'Juice', price: 18000 }
+        // ];
         let availableProducts = [
             { id: 1, name: 'Coca Cola', price: 15000 },
-            { id: 2, name: 'Pepsi', price: 15000 },
-            { id: 3, name: 'Water Bottle', price: 10000 },
-            { id: 4, name: 'Coffee', price: 25000 },
-            { id: 5, name: 'Fried Rice', price: 45000 },
-            { id: 6, name: 'Chicken Wings', price: 35000 },
-            { id: 7, name: 'French Fries', price: 30000 },
-            { id: 8, name: 'Sandwich', price: 40000 },
-            { id: 9, name: 'Beer', price: 20000 },
-            { id: 10, name: 'Juice', price: 18000 }
         ];
 
-        // Historical completed sessions for revenue calculation
+        // Historical completed sessions for revenue calculation  - dummy data
+        // let completedSessions = [
+        //     { customer: 'Alex Johnson', playingTime: 2700, tableAmount: 50000, productsAmount: 30000, amount: 80000, tableId: 1, endTime: Date.now() - 7200000, products: [{name: 'Coca Cola', price: 15000, quantity: 2}] },
+        //     { customer: 'Maria Garcia', playingTime: 3600, tableAmount: 50000, productsAmount: 45000, amount: 95000, tableId: 3, endTime: Date.now() - 5400000, products: [{name: 'Fried Rice', price: 45000, quantity: 1}] },
+        //     { customer: 'Tom Wilson', playingTime: 1800, tableAmount: 25000, productsAmount: 20000, amount: 45000, tableId: 2, endTime: Date.now() - 3600000, products: [{name: 'Beer', price: 20000, quantity: 1}] },
+        //     { customer: 'Lisa Chen', playingTime: 4500, tableAmount: 62500, productsAmount: 65000, amount: 127500, tableId: 4, endTime: Date.now() - 1800000, products: [{name: 'Coffee', price: 25000, quantity: 1}, {name: 'Sandwich', price: 40000, quantity: 1}] },
+        //     { customer: 'Mike Brown', playingTime: 900, tableAmount: 12500, productsAmount: 0, amount: 12500, tableId: 5, endTime: Date.now() - 900000, products: [] },
+        //     { customer: 'Anna Davis', playingTime: 5400, tableAmount: 75000, productsAmount: 53000, amount: 128000, tableId: 6, endTime: Date.now() - 600000, products: [{name: 'Chicken Wings', price: 35000, quantity: 1}, {name: 'Juice', price: 18000, quantity: 1}] },
+        // ];
         let completedSessions = [
-            { customer: 'Alex Johnson', playingTime: 2700, tableAmount: 50000, productsAmount: 30000, amount: 80000, tableId: 1, endTime: Date.now() - 7200000, products: [{name: 'Coca Cola', price: 15000, quantity: 2}] },
-            { customer: 'Maria Garcia', playingTime: 3600, tableAmount: 50000, productsAmount: 45000, amount: 95000, tableId: 3, endTime: Date.now() - 5400000, products: [{name: 'Fried Rice', price: 45000, quantity: 1}] },
-            { customer: 'Tom Wilson', playingTime: 1800, tableAmount: 25000, productsAmount: 20000, amount: 45000, tableId: 2, endTime: Date.now() - 3600000, products: [{name: 'Beer', price: 20000, quantity: 1}] },
-            { customer: 'Lisa Chen', playingTime: 4500, tableAmount: 62500, productsAmount: 65000, amount: 127500, tableId: 4, endTime: Date.now() - 1800000, products: [{name: 'Coffee', price: 25000, quantity: 1}, {name: 'Sandwich', price: 40000, quantity: 1}] },
-            { customer: 'Mike Brown', playingTime: 900, tableAmount: 12500, productsAmount: 0, amount: 12500, tableId: 5, endTime: Date.now() - 900000, products: [] },
-            { customer: 'Anna Davis', playingTime: 5400, tableAmount: 75000, productsAmount: 53000, amount: 128000, tableId: 6, endTime: Date.now() - 600000, products: [{name: 'Chicken Wings', price: 35000, quantity: 1}, {name: 'Juice', price: 18000, quantity: 1}] },
+            
         ];
 
         let PRICE_PER_20_MIN = 10000; // VND (configurable)
@@ -979,6 +993,7 @@
                 updateSelectedProducts();
                 renderTables();
             }
+            saveStateToLocalStorage(); // ✅ Save updated order
             // Keep the modal open - don't close automatically
         }
 
@@ -997,6 +1012,7 @@
                 
                 renderTables();
                 updateStats();
+                saveStateToLocalStorage();
             }
         }
 
@@ -1067,6 +1083,21 @@
             document.getElementById('paymentModal').classList.add('flex');
             showVietQR(totalAmount, "TPB", BANK_ACCOUNT);
         }
+        function saveStateToLocalStorage() {
+            localStorage.setItem('tables', JSON.stringify(tables));
+            localStorage.setItem('availableProducts', JSON.stringify(availableProducts));
+            localStorage.setItem('completedSessions', JSON.stringify(completedSessions));
+        }
+
+        function loadStateFromLocalStorage() {
+            const tablesData = localStorage.getItem('tables');
+            const productsData = localStorage.getItem('availableProducts');
+            const sessionsData = localStorage.getItem('completedSessions');
+
+            if (tablesData) tables = JSON.parse(tablesData);
+            if (productsData) availableProducts = JSON.parse(productsData);
+            if (sessionsData) completedSessions = JSON.parse(sessionsData);
+        }
 
         function closePaymentModal() {
             document.getElementById('paymentModal').classList.add('hidden');
@@ -1093,6 +1124,7 @@
                     products: [...selectedPaymentTable.products],
                     transactionId: selectedPaymentTable.transactionId
                 });
+                //saveStateToLocalStorage();
                 window.print();
                 selectedPaymentTable.status = 'available';
                 selectedPaymentTable.customer = '';
@@ -1103,6 +1135,7 @@
                 
                 renderTables();
                 updateStats();
+                saveStateToLocalStorage();
                 closePaymentModal();
             }
         }
@@ -1183,6 +1216,7 @@
 
         // Initialize
         function init() {
+            loadStateFromLocalStorage();
             updateHeaderPricing();
             renderTables();
             updateStats();
