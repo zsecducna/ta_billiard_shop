@@ -132,7 +132,7 @@
         </div>
         <!-- Start Session Time Modal -->
         <div id="startTimeModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-xl p-6 w-[90%] max-w-sm shadow-xl border border-slate-200">
+        <div class="bg-white rounded-xl p-6 max-w-sm shadow-xl border border-slate-200">
             <h2 class="text-lg font-bold text-slate-800 mb-2">Set Start Time</h2>
             <p class="text-sm text-slate-500 mb-4">Enter start time for this session (format: HH:mm)</p>
 
@@ -218,9 +218,9 @@
                             <input type="number" id="productPrice" placeholder="Price (VND)" class="w-32 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
                             
                         </div>
-                        <button onclick="addProduct()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                            Add
-                        </button>
+                        <button onclick="addProduct()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                Add
+                            </button>
                         <div class="max-h-64 overflow-y-auto">
                             <div id="productsList" class="space-y-2">
                                 <!-- Products will be populated here -->
@@ -450,10 +450,10 @@
         //     { id: 9, name: 'Beer', price: 20000 },
         //     { id: 10, name: 'Juice', price: 18000 }
         // ];
-        // let availableProducts = [
-        //     { id: 1, name: 'Coca Cola', price: 15000 },
-        // ];
-         let availableProducts = [];
+        let availableProducts = [
+            { id: 1, name: 'Coca Cola', price: 15000 },
+        ];
+
         // Historical completed sessions for revenue calculation  - dummy data
         // let completedSessions = [
         //     { customer: 'Alex Johnson', playingTime: 2700, tableAmount: 50000, productsAmount: 30000, amount: 80000, tableId: 1, endTime: Date.now() - 7200000, products: [{name: 'Coca Cola', price: 15000, quantity: 2}] },
@@ -495,6 +495,7 @@
         function resetData() {
             if (confirm('⚠️ This will erase all saved data and reset the app. Continue?')) {
                 //localStorage.clear();
+                exportCompletedSessionsToExcel();
                 localStorage.removeItem('tables');
                 localStorage.removeItem('completedSessions');
         
@@ -578,7 +579,9 @@
                                 </button>
                                 <button onclick="showProductsModal(${table.id})" class="bg-orange-600 hover:bg-orange-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-colors">
                                     🍽️ Products
-                                </button>`
+                                </button><button onclick="cancelSession(${table.id})"class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium rounded-md backdrop-blur-sm border border-slate-300 transition-colors">
+                            Cancel
+                        </button>`
                             }
                         </div>
                     </div>
@@ -1085,6 +1088,30 @@
                 saveStateToLocalStorage();
             }
         }
+        function cancelSession(tableId) {
+            const table = tables.find(t => t.id === tableId);
+            if (!table || table.status !== 'occupied') {
+                alert("Session is not active or table not found.");
+                return;
+            }
+
+            if (!confirm(`Cancel session for Table ${table.id}? This will erase any time and product data.`)) {
+                return;
+            }
+
+            // Reset session state
+            table.status = 'available';
+            table.customer = null;
+            table.playingTime = 0;
+            table.startTime = null;
+            table.products = [];
+            table.transactionId = null;
+
+            renderTables();
+            updateStats();
+            saveStateToLocalStorage();
+        }
+
         function startSession(tableId) {
             const table = tables.find(t => t.id === tableId);
             if (table) {
@@ -1151,7 +1178,7 @@
 
         function showPaymentModal(table) {
             const playingTime = table.playingTime;
-            const tableAmount = calculatePrice(playingTime);
+            const tableAmount = playingTime < 5 ? 0 : calculatePrice(playingTime);
             const productsAmount = table.products.reduce((total, product) => total + (product.price * product.quantity), 0);
             const totalAmount = tableAmount + productsAmount;
             
@@ -1204,6 +1231,41 @@
             localStorage.setItem('availableProducts', JSON.stringify(availableProducts));
             localStorage.setItem('completedSessions', JSON.stringify(completedSessions));
         }
+        function exportCompletedSessionsToExcel() {
+            const completedSessions = JSON.parse(localStorage.getItem('completedSessions') || '[]');
+            if (completedSessions.length === 0) {
+                alert("No completed sessions to export.");
+                return;
+            }
+
+            let csvContent = "Customer,Table ID,Playing Time (min),Table Amount,Products Amount,Total Amount,Products,End Time,Transaction ID\n";
+
+            completedSessions.forEach(session => {
+                const productsString = session.products.map(p => `${p.name} x${p.quantity}`).join('; ');
+                const row = [
+                    session.customer,
+                    session.tableId,
+                    Math.round(session.playingTime),  // already in minutes, just round
+                    session.tableAmount,
+                    session.productsAmount,
+                    session.amount,
+                    `"${productsString}"`, // keep in quotes in case it contains commas
+                    `"${new Date(session.endTime).toLocaleString().replace(/,/g, '')}"`, // remove commas from endTime
+                    session.transactionId
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            const dateStr = new Date().toISOString().slice(0,19).replace(/[:T]/g, '-');
+            a.download = `completed_sessions_${dateStr}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
 
         function loadStateFromLocalStorage() {
             const tablesData = localStorage.getItem('tables');
