@@ -484,6 +484,15 @@
             const now = new Date();
             document.getElementById('currentTime').textContent = now.toLocaleTimeString();
         }
+        function normalizeCompletedSessions(sessions) {
+            return sessions.map(session => {
+                if (session.playingTime < 5 * 60) {
+                    session.tableAmount = 0;
+                    session.amount = session.productsAmount;
+                }
+                return session;
+            });
+        }
 
         // Format playing time
         function formatTime(seconds) {
@@ -1227,6 +1236,7 @@
             showVietQR(totalAmount);
         }
         function saveStateToLocalStorage() {
+            completedSessions = normalizeCompletedSessions(completedSessions);
             localStorage.setItem('tables', JSON.stringify(tables));
             localStorage.setItem('availableProducts', JSON.stringify(availableProducts));
             localStorage.setItem('completedSessions', JSON.stringify(completedSessions));
