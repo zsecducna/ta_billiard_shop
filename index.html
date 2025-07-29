@@ -422,6 +422,30 @@
             });
         }
 
+
+        // Auto refresh
+        let idleTimer;
+        const idleLimit = 60 * 1000; // 1 minute
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(async () => {
+                try {
+                    await loadSessionsFromGist();
+                    updateStats(); // optional: update UI after reload
+                    console.log('Data reloaded due to inactivity');
+                } catch (err) {
+                    console.error('Failed to reload data from gist:', err);
+                }
+            }, idleLimit);
+        }
+        // List of events that indicate user activity
+        ['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetIdleTimer, false);
+        });
+        resetIdleTimer();
+
+
+
         // Table data - dummy data
         // let tables = [
         //     { id: 1, status: 'available', customer: '', playingTime: 0, startTime: null, products: [], transactionId: null },
