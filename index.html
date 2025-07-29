@@ -1496,15 +1496,19 @@
             setInterval(updateCurrentTime, 1000);
         }
 
+        async function askUserToken() {
+            const inputToken = prompt("🔐 Enter your GitHub Gist token:");
+            if (inputToken) {
+                    localStorage.setItem('gistToken', inputToken);
+                    return inputToken;
+                }
+            location.reload(); // Reload with token set
+        }
         // Start the application
         window.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('gistToken');
+            let token = localStorage.getItem('gistToken');
             if (!token) {
-                const inputToken = prompt("🔐 Enter your GitHub Gist token:");
-                if (inputToken) {
-                    localStorage.setItem('gistToken', inputToken);
-                    location.reload(); // Reload with token set
-                }
+                token = await askUserToken();
             }
 
             const isValid = await validateGistAccess(GIST_ID, token);
