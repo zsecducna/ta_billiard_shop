@@ -494,7 +494,10 @@
         }
         function resetData() {
             if (confirm('⚠️ This will erase all saved data and reset the app. Continue?')) {
-                localStorage.clear();
+                //localStorage.clear();
+                localStorage.removeItem('tables');
+                localStorage.removeItem('completedSessions');
+        
                 location.reload();
             }
         }
