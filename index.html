@@ -1178,7 +1178,7 @@
 
         function showPaymentModal(table) {
             const playingTime = table.playingTime;
-            const tableAmount = playingTime < 5 ? 0 : calculatePrice(playingTime);
+            const tableAmount = playingTime < 5 * 60 ? 0 : calculatePrice(playingTime);
             const productsAmount = table.products.reduce((total, product) => total + (product.price * product.quantity), 0);
             const totalAmount = tableAmount + productsAmount;
             
