@@ -80,7 +80,7 @@
                     <button onclick="showAdminPage()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors mr-2">
                         ⚙️ Admin
                     </button>
-                    <button onclick="resetData()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors mr-2">
+                    <button onclick="resetData()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors mr-2" disabled="true" style="display: none;">
                         🗑️ Reset
                     </button>
 
@@ -745,9 +745,10 @@
             }
         }
 
-        function closeAdminModal() {
+        async function closeAdminModal() {
             document.getElementById('adminModal').classList.add('hidden');
             document.getElementById('adminModal').classList.remove('flex');
+            await saveSessionsToGist();
         }
 
         function updateConfiguration() {
@@ -867,11 +868,12 @@
             document.getElementById('productsModal').classList.add('flex');
         }
 
-        function closeProductsModal() {
+        async function closeProductsModal() {
             document.getElementById('productsModal').classList.add('hidden');
             document.getElementById('productsModal').classList.remove('flex');
             selectedTableForProducts = null;
             selectedProductsForTable = [];
+            saveStateToLocalStorage();
         }
 
         function populateProductsGrid() {
