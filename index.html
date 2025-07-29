@@ -425,24 +425,42 @@
 
         // Auto refresh
         let idleTimer;
+        let idleStartTime = null;
+        let waitingForActivity = false;
         const idleLimit = 60 * 1000; // 1 minute
-        function resetIdleTimer() {
+
+        function handleUserActivity() {
+            const now = Date.now();
+
+            if (waitingForActivity) {
+                // User became active after idle — trigger refresh
+                waitingForActivity = false;
+                idleStartTime = null;
+                loadSessionsFromGist()
+                    .then(() => {
+                        updateStats();
+                        console.log('⟳ Data refreshed after user returned from idle');
+                    })
+                    .catch(err => console.error('Error reloading sessions:', err));
+            }
+
+            // Reset idle timer
             clearTimeout(idleTimer);
-            idleTimer = setTimeout(async () => {
-                try {
-                    await loadSessionsFromGist();
-                    updateStats(); // optional: update UI after reload
-                    console.log('Data reloaded due to inactivity');
-                } catch (err) {
-                    console.error('Failed to reload data from gist:', err);
-                }
+            idleTimer = setTimeout(() => {
+                idleStartTime = Date.now();
+                waitingForActivity = true;
+                console.log('🕒 User is idle. Waiting for interaction to refresh...');
             }, idleLimit);
         }
+
         // List of events that indicate user activity
         ['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(event => {
-            document.addEventListener(event, resetIdleTimer, false);
+            document.addEventListener(event, handleUserActivity, false);
         });
-        resetIdleTimer();
+
+        // Initialize on load
+        handleUserActivity();
+
 
 
 
