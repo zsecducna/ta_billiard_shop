@@ -565,7 +565,7 @@
         // Calculate price based on playing time (rounded up to 20-minute intervals)
         function calculatePrice(playingTimeSeconds) {
             const minutes = playingTimeSeconds / 60;
-            const rounded10MinIntervals = Math.ceil(minutes / 8); // Round up to next 20-minute interval
+            const rounded10MinIntervals = Math.ceil(minutes / 7.5); // Round up to next 20-minute interval
             return rounded10MinIntervals * PRICE_PER_7_MIN_AND_30_SEC;
         }
 
