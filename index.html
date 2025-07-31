@@ -440,6 +440,7 @@
                     .then(() => {
                         updateStats();
                         console.log('⟳ Data refreshed after user returned from idle');
+                        location.reload();
                     })
                     .catch(err => console.error('Error reloading sessions:', err));
             }
