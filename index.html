@@ -1295,7 +1295,8 @@
                 return;
             }
 
-            let csvContent = "Customer,Table ID,Playing Time (min),Table Amount,Products Amount,Total Amount,Products,End Time,Transaction ID\n";
+            let csvContent = "\uFEFF";
+            csvContent += "Customer,Table ID,Playing Time (min),Table Amount,Products Amount,Total Amount,Products,End Time,Transaction ID\n";
 
             completedSessions.forEach(session => {
                 const productsString = session.products.map(p => `${p.name} x${p.quantity}`).join('; ');
