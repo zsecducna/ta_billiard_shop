@@ -1343,35 +1343,43 @@
 
         function confirmPayment() {
             if (selectedPaymentTable) {
+                // Disable confirm_payment_button
+                document.getElementById('confirm_payment_button').disabled = true;
+                
                 // Calculate amounts
                 const tableAmount = calculatePrice(selectedPaymentTable.playingTime);
                 const productsAmount = selectedPaymentTable.products.reduce((total, product) => total + (product.price * product.quantity), 0);
                 const finalAmount = tableAmount + productsAmount;
+                if (finalAmount > 0){
+                    // Add to completed sessions for revenue tracking
+                    completedSessions.push({
+                        customer: selectedPaymentTable.customer,
+                        playingTime: selectedPaymentTable.playingTime,
+                        tableAmount: tableAmount,
+                        productsAmount: productsAmount,
+                        amount: finalAmount,
+                        tableId: selectedPaymentTable.id,
+                        endTime: Date.now(),
+                        products: [...selectedPaymentTable.products],
+                        transactionId: selectedPaymentTable.transactionId
+                    });
+                    //saveStateToLocalStorage();
+                    //window.print();
+                    selectedPaymentTable.status = 'available';
+                    selectedPaymentTable.customer = '';
+                    selectedPaymentTable.playingTime = 0;
+                    selectedPaymentTable.startTime = null;
+                    selectedPaymentTable.products = [];
+                    selectedPaymentTable.transactionId = null;
+                    
+                    renderTables();
+                    updateStats();
+                    saveStateToLocalStorage();
+                }
                 
-                // Add to completed sessions for revenue tracking
-                completedSessions.push({
-                    customer: selectedPaymentTable.customer,
-                    playingTime: selectedPaymentTable.playingTime,
-                    tableAmount: tableAmount,
-                    productsAmount: productsAmount,
-                    amount: finalAmount,
-                    tableId: selectedPaymentTable.id,
-                    endTime: Date.now(),
-                    products: [...selectedPaymentTable.products],
-                    transactionId: selectedPaymentTable.transactionId
-                });
-                //saveStateToLocalStorage();
-                //window.print();
-                selectedPaymentTable.status = 'available';
-                selectedPaymentTable.customer = '';
-                selectedPaymentTable.playingTime = 0;
-                selectedPaymentTable.startTime = null;
-                selectedPaymentTable.products = [];
-                selectedPaymentTable.transactionId = null;
-                
-                renderTables();
-                updateStats();
-                saveStateToLocalStorage();
+                //re-enable confirm_payment_button
+                document.getElementById('confirm_payment_button').disabled = false;
+
                 closePaymentModal();
             }
         }
