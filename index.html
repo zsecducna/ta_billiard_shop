@@ -1350,9 +1350,9 @@
                 const tableAmount = calculatePrice(selectedPaymentTable.playingTime);
                 const productsAmount = selectedPaymentTable.products.reduce((total, product) => total + (product.price * product.quantity), 0);
                 const finalAmount = tableAmount + productsAmount;
-                if (finalAmount > 0){
+                if (finalAmount > -1){
                      // Disable confirm_payment_button
-                    document.getElementById('confirm_payment_button').disabled = true;
+                    //document.getElementById('confirm_payment_button').disabled = true;
                     // Add to completed sessions for revenue tracking
                     completedSessions.push({
                         customer: selectedPaymentTable.customer,
@@ -1378,7 +1378,7 @@
                     updateStats();
                     saveStateToLocalStorage();
                     //re-enable confirm_payment_button
-                    document.getElementById('confirm_payment_button').disabled = false;
+                    //document.getElementById('confirm_payment_button').disabled = false;
 
                 }
                 
