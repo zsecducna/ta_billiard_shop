@@ -1344,14 +1344,15 @@
 
         function confirmPayment() {
             if (selectedPaymentTable) {
-                // Disable confirm_payment_button
-                document.getElementById('confirm_payment_button').disabled = true;
+               
                 
                 // Calculate amounts
                 const tableAmount = calculatePrice(selectedPaymentTable.playingTime);
                 const productsAmount = selectedPaymentTable.products.reduce((total, product) => total + (product.price * product.quantity), 0);
                 const finalAmount = tableAmount + productsAmount;
                 if (finalAmount > 0){
+                     // Disable confirm_payment_button
+                    document.getElementById('confirm_payment_button').disabled = true;
                     // Add to completed sessions for revenue tracking
                     completedSessions.push({
                         customer: selectedPaymentTable.customer,
