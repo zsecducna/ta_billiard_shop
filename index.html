@@ -1377,11 +1377,12 @@
                     renderTables();
                     updateStats();
                     saveStateToLocalStorage();
+                    //re-enable confirm_payment_button
+                    document.getElementById('confirm_payment_button').disabled = false;
+
                 }
                 
-                //re-enable confirm_payment_button
-                document.getElementById('confirm_payment_button').disabled = false;
-
+                
                 closePaymentModal();
             }
         }
